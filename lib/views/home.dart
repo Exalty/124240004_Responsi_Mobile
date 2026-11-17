@@ -25,7 +25,10 @@ class _MainPageShellState extends State<MainPageShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -35,8 +38,8 @@ class _MainPageShellState extends State<MainPageShell> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
+            icon: Icon(Icons.sports_esports_rounded),
+            label: 'Games',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_rounded),
@@ -60,22 +63,34 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late Future<List<Game>> _showsFuture;
+  late Future<List<Game>> _gamesFuture;
 
   @override
   void initState() {
     super.initState();
-    _showsFuture = ApiService.fetchShows();
+    _gamesFuture = ApiService.fetchGames();
+  }
+
+  void _refresh() {
+    setState(() {
+      _gamesFuture = ApiService.fetchGames();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TV Shows'),
+        title: const Text('Free Games'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _refresh,
+          ),
+        ],
       ),
       body: FutureBuilder<List<Game>>(
-        future: _showsFuture,
+        future: _gamesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -85,29 +100,30 @@ class _HomePageState extends State<HomePage> {
 
           if (snapshot.hasError) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 48),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Gagal memuat data: ${snapshot.error}',
-                    style: const TextStyle(color: Color(0xFF94A3B8)),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _showsFuture = ApiService.fetchShows();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      foregroundColor: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 52),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Gagal memuat data:\n${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFF94A3B8)),
                     ),
-                    child: const Text('Coba Lagi'),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _refresh,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Coba Lagi'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -115,32 +131,26 @@ class _HomePageState extends State<HomePage> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                'Tidak ada show tersedia',
+                'Tidak ada game tersedia',
                 style: TextStyle(color: Color(0xFF94A3B8)),
               ),
             );
           }
 
-          final shows = snapshot.data!;
+          final games = snapshot.data!;
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.65,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: shows.length,
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            itemCount: games.length,
             itemBuilder: (context, index) {
-              final show = shows[index];
+              final game = games[index];
               return ShowCard(
-                show: show,
+                show: game,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DetailPage(showId: show.id),
+                      builder: (context) => DetailPage(showId: game.id),
                     ),
                   );
                 },

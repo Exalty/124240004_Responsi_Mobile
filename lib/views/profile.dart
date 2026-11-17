@@ -112,7 +112,8 @@ Future<void> _logout() async {
                 fontSize: 14,
               ),
             ),
-            const SizedBox(height: 24),SizedBox(
+            const SizedBox(height: 24),
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _logout,

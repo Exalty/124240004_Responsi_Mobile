@@ -46,10 +46,10 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
 
-      // Navigate to Home Page and remove login route from stack
+      // Navigate to Main Page Shell and remove login route from stack
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const MainPageShell()),
       );
     } else {
       setState(() {
@@ -94,14 +94,14 @@ class _LoginPageState extends State<LoginPage> {
                       color: Color(0x266366F1),
                     ),
                     child: const Icon(
-                      Icons.tv,
+                      Icons.sports_esports_rounded,
                       size: 52,
                       color: Color(0xFF818CF8),
                     ),
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'TV Series App',
+                    'Games List App',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -112,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Latihan Responsi Prak Mobile',
+                    'Responsi Praktikum Mobile',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,

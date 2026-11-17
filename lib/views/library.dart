@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../models/Game.dart';
+import '../models/game.dart';
 import 'detail.dart';
 
 class LibraryPage extends StatelessWidget {
@@ -13,7 +13,7 @@ class LibraryPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shows Favorit'),
+        title: const Text('Game Favorit'),
       ),
       body: ValueListenableBuilder(
         valueListenable: favoritesBox.listenable(),
@@ -26,7 +26,7 @@ class LibraryPage extends StatelessWidget {
                   Icon(Icons.favorite_border, size: 70, color: Color(0xFF475569)),
                   SizedBox(height: 12),
                   Text(
-                    'Belum ada show favorit',
+                    'Belum ada game favorit',
                     style: TextStyle(
                       fontSize: 16,
                       color: Color(0xFF94A3B8),
@@ -38,13 +38,13 @@ class LibraryPage extends StatelessWidget {
             );
           }
 
-          final favoriteShows = box.values.toList().cast<Game>();
+          final favoriteGames = box.values.toList().cast<Game>();
 
           return ListView.builder(
-            itemCount: favoriteShows.length,
+            itemCount: favoriteGames.length,
             padding: const EdgeInsets.all(12),
             itemBuilder: (context, index) {
-              final show = favoriteShows[index];
+              final game = favoriteGames[index];
 
               return Card(
                 elevation: 3,
@@ -58,52 +58,48 @@ class LibraryPage extends StatelessWidget {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: show.imageUrl != null
+                    child: game.imageUrl != null
                         ? CachedNetworkImage(
-                            imageUrl: show.imageUrl!,
-                            width: 50,
-                            height: 70,
+                            imageUrl: game.imageUrl!,
+                            width: 60,
+                            height: 60,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
-                              width: 50,
-                              height: 70,
+                              width: 60,
+                              height: 60,
                               color: const Color(0xFF0F172A),
                             ),
                             errorWidget: (context, url, error) => Container(
-                              width: 50,
-                              height: 70,
+                              width: 60,
+                              height: 60,
                               color: const Color(0xFF334155),
-                              child: const Icon(Icons.broken_image, size: 24, color: Color(0xFF94A3B8)),
+                              child: const Icon(Icons.sports_esports, size: 24, color: Color(0xFF94A3B8)),
                             ),
                           )
                         : Container(
-                            width: 50,
-                            height: 70,
+                            width: 60,
+                            height: 60,
                             color: const Color(0xFF334155),
-                            child: const Icon(Icons.tv, size: 24, color: Color(0xFF94A3B8)),
+                            child: const Icon(Icons.sports_esports, size: 24, color: Color(0xFF94A3B8)),
                           ),
                   ),
                   title: Text(
-                    show.name,
+                    game.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFF1F5F9)),
                   ),
-                  subtitle: Row(
-                    children: [
-                      const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 18),
-                      const SizedBox(width: 4),
-                      // Text(
-                      //   show.rating != null ? show.rating!.toString() : 'N/A',
-                      //   style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFFCBD5E1)),
-                      // ),
-                    ],
+                  subtitle: Text(
+                    game.genres.isNotEmpty ? game.genres.first : (game.platform ?? 'Free-to-Play'),
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline, color: Color(0xFFF43F5E)),
                     onPressed: () {
-                      box.delete(show.id);
+                      box.delete(game.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${show.name} dihapus dari favorit'),
+                          content: Text('${game.name} dihapus dari favorit'),
                           backgroundColor: const Color(0xFFEF4444),
                           duration: const Duration(seconds: 1),
                         ),
@@ -114,7 +110,7 @@ class LibraryPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DetailPage(showId: show.id),
+                        builder: (context) => DetailPage(showId: game.id),
                       ),
                     );
                   },

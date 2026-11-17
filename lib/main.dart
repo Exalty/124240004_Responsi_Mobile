@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
           elevation: 8,
         ),
       ),
-      home: isLoggedIn ? const HomePage() : const LoginPage(),
+      home: isLoggedIn ? const MainPageShell() : const LoginPage(),
     );
   }
 }
