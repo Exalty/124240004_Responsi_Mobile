@@ -24,141 +24,71 @@ class _DetailPageState extends State<DetailPage> {
     _favoritesBox = Hive.box('favorites');
   }
 
-  // Remove HTML tags or whitespace
-  String _cleanSummary(String? rawSummary) {
-    if (rawSummary == null || rawSummary.trim().isEmpty) {
-      return 'Tidak ada deskripsi tersedia.';
-    }
-    final exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: false);
-    return rawSummary.replaceAll(exp, '').trim();
-  }
-
-  bool _isFavorite(int id) {
+  bool _isOwned(int id) {
     return _favoritesBox.containsKey(id);
   }
 
-  void _toggleFavorite(Game game) {
+  void _toggleGetGame(Game game) {
     setState(() {
-      if (_isFavorite(game.id)) {
+      if (_isOwned(game.id)) {
+        // Hapus dari library
         _favoritesBox.delete(game.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dihapus dari Favorit'),
-            backgroundColor: Color(0xFFEF4444),
-            duration: Duration(seconds: 1),
+          SnackBar(
+            content: Text('${game.name} dihapus dari Library'),
+            backgroundColor: const Color(0xFFEF4444),
+            duration: const Duration(seconds: 1),
           ),
         );
       } else {
+        // Tambahkan ke library
         _favoritesBox.put(game.id, game);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ditambahkan ke Favorit'),
-            backgroundColor: Color(0xFF10B981),
-            duration: Duration(seconds: 1),
+          SnackBar(
+            content: Text('${game.name} berhasil ditambahkan ke Library!'),
+            backgroundColor: const Color(0xFF10B981),
+            duration: const Duration(seconds: 1),
           ),
         );
       }
     });
   }
 
-  void _showReminderDialog(Game game) {
-    int selectedSeconds = 10;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
-              title: const Row(
-                children: [
-                  Icon(Icons.alarm_add_rounded, color: Color(0xFF6366F1)),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Pasang Pengingat Game',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ingatkan saya untuk bermain "${game.name}" dalam:',
-                    style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: const Text('10 Detik'),
-                        selected: selectedSeconds == 10,
-                        onSelected: (val) => setDialogState(() => selectedSeconds = 10),
-                      ),
-                      ChoiceChip(
-                        label: const Text('1 Menit'),
-                        selected: selectedSeconds == 60,
-                        onSelected: (val) => setDialogState(() => selectedSeconds = 60),
-                      ),
-                      ChoiceChip(
-                        label: const Text('5 Menit'),
-                        selected: selectedSeconds == 300,
-                        onSelected: (val) => setDialogState(() => selectedSeconds = 300),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal', style: TextStyle(color: Color(0xFF94A3B8))),
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.notifications_active_rounded, size: 18),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    final messenger = ScaffoldMessenger.of(context);
-                    Navigator.pop(context);
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Pengingat berhasil dipasang untuk $selectedSeconds detik lagi!',
-                        ),
-                        backgroundColor: const Color(0xFF6366F1),
-                      ),
-                    );
-                  },
-                  label: const Text('Set Pengingat'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+  String _cleanText(String? text) {
+    if (text == null || text.trim().isEmpty) {
+      return 'Tidak ada deskripsi tersedia.';
+    }
+    final exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: false);
+    return text.replaceAll(exp, '').trim();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Detail Game'),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Detail',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
       body: FutureBuilder<Game>(
         future: _gameDetailFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+              child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
             );
           }
 
@@ -169,12 +99,12 @@ class _DetailPageState extends State<DetailPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 52),
+                    const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 48),
                     const SizedBox(height: 12),
                     Text(
-                      'Error: ${snapshot.error}',
+                      'Gagal memuat detail game:\n${snapshot.error}',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFF94A3B8)),
+                      style: const TextStyle(color: Color(0xFF9CA3AF)),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
@@ -185,7 +115,7 @@ class _DetailPageState extends State<DetailPage> {
                       },
                       icon: const Icon(Icons.refresh),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6366F1),
+                        backgroundColor: const Color(0xFF2563EB),
                         foregroundColor: Colors.white,
                       ),
                       label: const Text('Coba Lagi'),
@@ -200,42 +130,45 @@ class _DetailPageState extends State<DetailPage> {
             return const Center(
               child: Text(
                 'Data game tidak ditemukan',
-                style: TextStyle(color: Color(0xFF94A3B8)),
+                style: TextStyle(color: Color(0xFF9CA3AF)),
               ),
             );
           }
 
           final game = snapshot.data!;
-          final isFav = _isFavorite(game.id);
+          final bool owned = _isOwned(game.id);
+          final genre = game.genres.isNotEmpty ? game.genres.first : 'Game';
+          final platform = game.platform ?? 'Windows';
 
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Game Banner / Image
+                // 1. Hero Image (Thumbnail paling atas & besar)
                 if (game.imageUrl != null && game.imageUrl!.isNotEmpty)
                   CachedNetworkImage(
                     imageUrl: game.imageUrl!,
-                    height: 250,
+                    height: 220,
+                    width: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      height: 250,
-                      color: const Color(0xFF1E293B),
+                      height: 220,
+                      color: const Color(0xFF18181B),
                       child: const Center(
-                        child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+                        child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      height: 250,
-                      color: const Color(0xFF1E293B),
-                      child: const Icon(Icons.broken_image, size: 64, color: Color(0xFF94A3B8)),
+                      height: 220,
+                      color: const Color(0xFF18181B),
+                      child: const Icon(Icons.broken_image, size: 50, color: Color(0xFF71717A)),
                     ),
                   )
                 else
                   Container(
-                    height: 250,
-                    color: const Color(0xFF1E293B),
-                    child: const Icon(Icons.sports_esports, size: 64, color: Color(0xFF94A3B8)),
+                    height: 220,
+                    color: const Color(0xFF18181B),
+                    child: const Icon(Icons.sports_esports, size: 50, color: Color(0xFF71717A)),
                   ),
 
                 Padding(
@@ -243,164 +176,226 @@ class _DetailPageState extends State<DetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title & Favorite button
+                      // 2. Genre & Platform Badges
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF27272A),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                             child: Text(
-                              game.name,
+                              genre,
                               style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFF8FAFC),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFE4E4E7),
                               ),
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(
-                              isFav ? Icons.favorite : Icons.favorite_border,
-                              color: isFav ? const Color(0xFFF43F5E) : const Color(0xFF94A3B8),
-                              size: 30,
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF27272A),
+                              borderRadius: BorderRadius.circular(6),
                             ),
-                            onPressed: () => _toggleFavorite(game),
+                            child: Text(
+                              platform,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFE4E4E7),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
 
-                      // Platform info & Reminder Button
+                      // 3. Nama Game
+                      Text(
+                        game.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 4. Tanggal Rilis, Publisher & Developer
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.devices, color: Color(0xFF818CF8), size: 20),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    game.platform ?? 'PC / All Platforms',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFFCBD5E1),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                                const Text(
+                                  'Release Date',
+                                  style: TextStyle(color: Color(0xFF71717A), fontSize: 12),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  game.releaseDate ?? '-',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF818CF8),
-                              side: const BorderSide(color: Color(0xFF6366F1)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Publisher',
+                                  style: TextStyle(color: Color(0xFF71717A), fontSize: 12),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  game.publisher ?? '-',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                            icon: const Icon(Icons.alarm_add_rounded, size: 18),
-                            label: const Text('Ingatkan'),
-                            onPressed: () => _showReminderDialog(game),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Developer',
+                                  style: TextStyle(color: Color(0xFF71717A), fontSize: 12),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  game.developer ?? '-',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-
-                      // Metadata Info Box (Publisher, Developer, Release Date)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF334155), width: 0.8),
-                        ),
-                        child: Column(
-                          children: [
-                            if (game.publisher != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text('Publisher', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
-                                    Text(game.publisher!, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                                  ],
-                                ),
-                              ),
-                            if (game.developer != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text('Developer', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
-                                    Text(game.developer!, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                                  ],
-                                ),
-                              ),
-                            if (game.releaseDate != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text('Release Date', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
-                                    Text(game.releaseDate!, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 20),
 
-                      // Genres
-                      if (game.genres.isNotEmpty) ...[
+                      // 5. Button untuk user mendapatkan game (UI berbeda)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _toggleGetGame(game),
+                          icon: Icon(
+                            owned ? Icons.check : Icons.add,
+                            size: 18,
+                            color: owned ? const Color(0xFFD4D4D8) : Colors.white,
+                          ),
+                          label: Text(
+                            owned ? 'In Library' : 'Get',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: owned ? const Color(0xFFD4D4D8) : Colors.white,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: owned ? const Color(0xFF27272A) : const Color(0xFF2563EB),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // 6. Screenshots
+                      if (game.screenshots.isNotEmpty) ...[
                         const Text(
-                          'Genre',
+                          'Screenshots',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFF8FAFC),
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: game.genres.map((genre) {
-                            return Chip(
-                              label: Text(
-                                genre,
-                                style: const TextStyle(color: Color(0xFFE0E7FF), fontWeight: FontWeight.w500),
-                              ),
-                              backgroundColor: const Color(0xFF312E81),
-                              side: const BorderSide(color: Color(0xFF4338CA)),
-                            );
-                          }).toList(),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: game.screenshots.length,
+                            itemBuilder: (context, index) {
+                              final img = game.screenshots[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CachedNetworkImage(
+                                    imageUrl: img,
+                                    width: 160,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      width: 160,
+                                      height: 100,
+                                      color: const Color(0xFF18181B),
+                                      child: const Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Color(0xFF3B82F6),
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      width: 160,
+                                      height: 100,
+                                      color: const Color(0xFF18181B),
+                                      child: const Icon(Icons.broken_image, color: Color(0xFF71717A)),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                       ],
 
-                      // Description
+                      // 7. Deskripsi Game (Overview)
                       const Text(
-                        'Deskripsi Game',
+                        'Overview',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFF8FAFC),
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
-                        _cleanSummary(game.description ?? game.short_description),
+                        _cleanText(game.description ?? game.short_description),
                         style: const TextStyle(
-                          fontSize: 14,
-                          height: 1.6,
-                          color: Color(0xFFCBD5E1),
+                          fontSize: 13.5,
+                          height: 1.5,
+                          color: Color(0xFFA1A1AA),
                         ),
                       ),
                     ],

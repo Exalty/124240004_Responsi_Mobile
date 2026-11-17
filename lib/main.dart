@@ -4,16 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/game.dart';
 import 'views/home.dart';
 import 'views/login.dart';
-// import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // // Initialize Local Notifications
-  // await NotificationService.init();
-  // await NotificationService.requestPermission();
-
-  // // Initialize Hive and register adapter
+  // Initialize Hive and register adapter
   await Hive.initFlutter();
   Hive.registerAdapter(GameAdapter());
   await Hive.openBox('favorites');
@@ -33,44 +28,25 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Games List App',
+      title: 'Hydra Games',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A), // Dark slate blue
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF6366F1), // Indigo accent
-          secondary: Color(0xFFEC4899), // Pink accent
-          surface: Color(0xFF1E293B), // Card & surface dark slate
-          onPrimary: Colors.white,
-          onSurface: Color(0xFFF1F5F9),
+          primary: Color(0xFF2563EB),
+          secondary: Color(0xFF3B82F6),
+          surface: Color(0xFF18181B),
         ),
         appBarTheme: const AppBarTheme(
-          centerTitle: true,
+          backgroundColor: Colors.black,
           elevation: 0,
-          backgroundColor: Color(0xFF1E293B),
-          foregroundColor: Colors.white,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
+            color: Colors.white,
           ),
-        ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF1E293B),
-          elevation: 4,
-          shadowColor: const Color(0x66000000),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color(0xFF1E293B),
-          selectedItemColor: Color(0xFF6366F1),
-          unselectedItemColor: Color(0xFF94A3B8),
-          type: BottomNavigationBarType.fixed,
-          elevation: 8,
         ),
       ),
       home: isLoggedIn ? const MainPageShell() : const LoginPage(),

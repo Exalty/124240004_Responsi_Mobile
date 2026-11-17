@@ -25,12 +25,17 @@ class _MainPageShellState extends State<MainPageShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF111827),
+        selectedItemColor: const Color(0xFF3B82F6),
+        unselectedItemColor: const Color(0xFF9CA3AF),
         currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -38,15 +43,15 @@ class _MainPageShellState extends State<MainPageShell> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.sports_esports_rounded),
-            label: 'Games',
+            icon: Icon(Icons.home),
+            label: 'Beranda',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_rounded),
-            label: 'Favorit',
+            icon: Icon(Icons.check_circle_outline),
+            label: 'Library',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
+            icon: Icon(Icons.person),
             label: 'Profil',
           ),
         ],
@@ -80,21 +85,26 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Free Games'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: _refresh,
+        backgroundColor: Colors.black,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Browse Games',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
-        ],
+        ),
       ),
       body: FutureBuilder<List<Game>>(
         future: _gamesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+              child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
             );
           }
 
@@ -105,12 +115,12 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 52),
+                    const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 50),
                     const SizedBox(height: 12),
                     Text(
                       'Gagal memuat data:\n${snapshot.error}',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFF94A3B8)),
+                      style: const TextStyle(color: Color(0xFF9CA3AF)),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
@@ -118,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.refresh),
                       label: const Text('Coba Lagi'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6366F1),
+                        backgroundColor: const Color(0xFF2563EB),
                         foregroundColor: Colors.white,
                       ),
                     ),
@@ -132,7 +142,7 @@ class _HomePageState extends State<HomePage> {
             return const Center(
               child: Text(
                 'Tidak ada game tersedia',
-                style: TextStyle(color: Color(0xFF94A3B8)),
+                style: TextStyle(color: Color(0xFF9CA3AF)),
               ),
             );
           }
@@ -140,7 +150,7 @@ class _HomePageState extends State<HomePage> {
           final games = snapshot.data!;
 
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: games.length,
             itemBuilder: (context, index) {
               final game = games[index];
@@ -152,7 +162,10 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(
                       builder: (context) => DetailPage(showId: game.id),
                     ),
-                  );
+                  ).then((_) {
+                    // Update state if needed
+                    setState(() {});
+                  });
                 },
               );
             },

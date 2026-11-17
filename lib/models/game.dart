@@ -2,15 +2,16 @@ import 'package:hive/hive.dart';
 
 class Game {
   final int id;
-  final String name; // mapped from 'title' or 'name'
-  final String? imageUrl; // mapped from 'thumbnail' or 'image'
-  final List<String> genres; // mapped from 'genre' (String) or 'genres' (List)
+  final String name; // 'title'
+  final String? imageUrl; // 'thumbnail'
+  final List<String> genres; // 'genre' (String) or 'genres' (List)
   final String? short_description;
   final String? description;
   final String? platform;
   final String? publisher;
   final String? developer;
   final String? releaseDate;
+  final List<String> screenshots;
 
   Game({
     required this.id,
@@ -23,11 +24,11 @@ class Game {
     this.publisher,
     this.developer,
     this.releaseDate,
+    this.screenshots = const [],
   });
 
-  /// Parse from FreeToGame or TVMaze API JSON response
+  /// Parse from FreeToGame API JSON response
   factory Game.fromJson(Map<String, dynamic> json) {
-    // FreeToGame uses 'genre' (String), TVMaze uses 'genres' (List)
     List<String> parsedGenres = [];
     if (json['genre'] != null && json['genre'].toString().isNotEmpty) {
       parsedGenres = [json['genre'].toString()];
@@ -35,10 +36,18 @@ class Game {
       parsedGenres = List<String>.from(json['genres']);
     }
 
-    // FreeToGame uses 'thumbnail', TVMaze uses 'image' -> 'medium'
     String? imgUrl = json['thumbnail'];
     if (imgUrl == null && json['image'] != null && json['image'] is Map) {
       imgUrl = json['image']['medium'] ?? json['image']['original'];
+    }
+
+    List<String> parsedScreenshots = [];
+    if (json['screenshots'] != null && json['screenshots'] is List) {
+      for (var s in json['screenshots']) {
+        if (s is Map && s['image'] != null) {
+          parsedScreenshots.add(s['image'].toString());
+        }
+      }
     }
 
     return Game(
@@ -52,6 +61,7 @@ class Game {
       publisher: json['publisher'],
       developer: json['developer'],
       releaseDate: json['release_date'],
+      screenshots: parsedScreenshots,
     );
   }
 
@@ -68,6 +78,7 @@ class Game {
       'publisher': publisher,
       'developer': developer,
       'releaseDate': releaseDate,
+      'screenshots': screenshots,
     };
   }
 
@@ -84,6 +95,7 @@ class Game {
       publisher: map['publisher'],
       developer: map['developer'],
       releaseDate: map['releaseDate'],
+      screenshots: List<String>.from(map['screenshots'] ?? []),
     );
   }
 }
